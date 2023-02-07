@@ -1,0 +1,56 @@
+{
+    "user": {
+        "id": "0b3b46d9147710163e25eb850b3b463e25eb856d91477101",
+        "lvl": [
+            "0"
+        ],
+        "name": "000test000",
+        "email": "000test000@gmail.com",
+        "token": "000test000"
+    },
+    "chat_data": {
+        "count": 0,
+        "id": "single",
+        "chat": [
+            {
+                "channel_id": "0b3b46d9147710163e25eb850b3b463e25eb856d91477101",
+                "last_update": "2023-02-07 14:26:22.281654 UTC",
+                "users": [
+                    {
+                        "id": "0b3b46d9147710163e25eb850b3b463e25eb856d91477101",
+                        "name": "000test000",
+                        "email": "000test000@gmail.com"
+                    }
+                ],
+                "messages": []
+            }
+        ],
+        "users": [
+            {
+                "id": "63dc32d558ed6813e334ac6f",
+                "name": "user0",
+                "email": "user0@21times2.com"
+            },
+            {
+                "id": "63dc330258ed6813e334ac72",
+                "name": "user1",
+                "email": "user1@21times2.com"
+            },
+            {
+                "id": "63dc333758ed6813e334ac75",
+                "name": "user2",
+                "email": "user2@21times2.com"
+            },
+            {
+                "id": "63dc335c58ed6813e334ac78",
+                "name": "user3",
+                "email": "user3@21times2.com"
+            }
+        ]
+    },
+    "currentSelectedUsers": [],
+    "currentMessage": "",
+    "isLoadingChat": false,
+    "errorChat": null,
+    "isFetchingChat": false
+}
