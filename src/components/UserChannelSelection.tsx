@@ -32,7 +32,6 @@ export default function DtkUserChannelSelection() {
           color: 'black',
           borderRadius: '5px',
           padding: '5px',
-          // mt: '20px',
           mb: '20px',
         }}
       />

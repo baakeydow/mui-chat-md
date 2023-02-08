@@ -22,8 +22,6 @@ import { AppBar, DrawerHeader, drawerWidth } from './mui';
 
 export default function DtkAppContainer() {
   const { user, chat_data, currentSelectedUsers, errorChat, createChannel } = React.useContext(AppContext);
-  const testMockQuery = React.useContext(QueryContext);
-  const testMockApp = React.useContext(AppContext);
   const { query, setDrawerOpen, selectChannel } = React.useContext(QueryContext);
   const { currentChannelId, drawerOpen } = query;
   const currentChat = chat_data?.chat?.find((message) => message.channel_id === currentChannelId);
@@ -36,7 +34,7 @@ export default function DtkAppContainer() {
     if (currentChat?.channel_id) {
       setChatContent(currentChat);
     }
-  }, [testMockQuery, testMockApp, currentChat]);
+  }, [currentChat]);
 
   const handleDrawerOpen = () => {
     setDrawerOpen(true);
@@ -72,7 +70,6 @@ export default function DtkAppContainer() {
         <Button
           onClick={handleChannelCreation}
           sx={{
-            // maxWidth: '80%',
             fontSize: '0.8rem',
             marginX: '20px',
             '&:hover': {

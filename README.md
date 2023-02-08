@@ -10,4 +10,4 @@
 
 ---
 
-![mui-chat-md](public/mui-chat-md.png)
+![mui-chat-md](public/mui-chat-md.gif)
