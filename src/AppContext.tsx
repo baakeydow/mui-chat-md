@@ -114,6 +114,44 @@ const handleWebSocketMessage = (
   }
 };
 
+const connectWs = (
+  message: string,
+  url: string,
+  chat_data: ChatForUsers,
+  currentChat: DtkChat | undefined,
+  currentChannelId: string,
+  user: DtkUser | null,
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+  setChatData: React.Dispatch<React.SetStateAction<ChatForUsers>>,
+  selectChannel: (channel_id: string, chat_data: ChatForUsers) => void
+) => {
+  const ws = new WebSocket(url);
+  ws.onerror = (error: any) => {
+    console.error('# => ws::error', error);
+    ws.close();
+    setIsOpen(false);
+  };
+  ws.onclose = () => {
+    // console.log('# => ws::onclose disconnected');
+    setIsOpen(false);
+    setTimeout(() => {
+      // console.log('# => ws::onclose reconnecting...');
+      connectWs(message, url, chat_data, currentChat, currentChannelId, user, setIsOpen, setChatData, selectChannel);
+    }, 1000);
+  };
+  ws.onopen = () => {
+    // console.log('# => ws::onopen connected');
+    setIsOpen(true);
+    ws.send(`/join ${currentChannelId}`);
+    ws.send(message);
+    // console.log('# => ws::onopen message sent');
+  };
+  ws.onmessage = (event: any) => {
+    handleWebSocketMessage(event, chat_data, currentChat, currentChannelId, user, setChatData, selectChannel);
+  };
+  return ws;
+};
+
 interface Props {
   children: React.ReactNode;
 }
@@ -121,6 +159,7 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
   const { query, selectChannel } = React.useContext(QueryContext);
   const { currentChannelId } = query;
   const user = JSON.parse(Cookies.get('dtksi-user')?.toString() || '{}');
+  const [isOpen, setIsOpen] = React.useState(false);
   const [currentSelectedUsers, setCurrentSelectedUsers] = React.useState(defaultState.currentSelectedUsers);
   const [currentMessage, setCurrentMessage] = React.useState(defaultState.currentMessage);
   const [chat_data, setChatData] = React.useState(defaultState.chat_data);
@@ -134,8 +173,6 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
   const currentChat = chat_data?.chat?.find((message) => message.channel_id === query.currentChannelId);
   const endpoint_with_creds = `${wsChatEndpoint}?user_id=${user?.id}&token=${user?.token}&channel_id=${currentChannelId}`;
 
-  const ws = React.useMemo(() => new WebSocket(endpoint_with_creds), [endpoint_with_creds]);
-
   React.useEffect(() => {
     if (!user.id || !user.token) {
       return;
@@ -145,22 +182,15 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
       refetch();
     }
     if (data?.chat?.length && !currentChat?.channel_id && chat_data?.chat?.length) {
-      console.log('# => fallback for new user with no/wrong channel_id in query url');
+      // console.log('# => fallback for new user with no/wrong channel_id in query url');
       setChatData(data);
       selectChannel(data?.chat?.find((message) => message.channel_id === user?.id)?.channel_id || 'shouldneverhappen', chat_data);
-      console.log('# => chat ready');
+      // console.log('# => chat ready');
     }
-    ws.onerror = (error) => {
-      console.error('error', error);
-    };
-    ws.onopen = () => {
-      ws.send(`/join ${currentChannelId}`);
-      ws.send('/get');
-    };
-    ws.onmessage = (event) => {
-      handleWebSocketMessage(event, chat_data, currentChat, currentChannelId, user, setChatData, selectChannel);
-    };
-  }, [ws, user, data, currentChat, currentChannelId, chat_data, refetch, setChatData, selectChannel]);
+    if (!isOpen) {
+      connectWs('/get', endpoint_with_creds, chat_data, currentChat, currentChannelId, user, setIsOpen, setChatData, selectChannel);
+    }
+  }, [user, data, endpoint_with_creds, isOpen, currentChat, currentChannelId, chat_data, refetch, setChatData, selectChannel]);
 
   const callbacks = React.useMemo(() => {
     const setChatMessage = (message: string) => {
@@ -177,9 +207,8 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
         users,
         messages: [],
       };
-      ws?.send(`/join ${currentChannelId}`);
       await postMessage(user, formattedChatPayload);
-      ws?.send('/post');
+      connectWs('/post', endpoint_with_creds, chat_data, currentChat, currentChannelId, user, setIsOpen, setChatData, selectChannel);
       setCurrentSelectedUsers([]);
       setCurrentMessage('');
     };
@@ -202,9 +231,8 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
           },
         ],
       };
-      ws?.send(`/join ${currentChannelId}`);
       await postMessage(user, formattedChatPayload);
-      ws?.send('/post');
+      connectWs('/post', endpoint_with_creds, chat_data, currentChat, currentChannelId, user, setIsOpen, setChatData, selectChannel);
       setCurrentMessage('');
     }, 1000);
 
@@ -214,7 +242,7 @@ const AppContextProvider: React.FC<Props> = ({ children }) => {
       postChatMessage,
       createChannel,
     };
-  }, [currentChannelId, user, ws]);
+  }, [user, chat_data, currentChannelId, currentChat, endpoint_with_creds, selectChannel]);
 
   return (
     <AppContext.Provider
